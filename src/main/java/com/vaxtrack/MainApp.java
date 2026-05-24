@@ -3,6 +3,9 @@ package com.vaxtrack;
 import com.vaxtrack.service.VaccineRecordService;
 import java.time.LocalDate;
 
+import com.vaxtrack.service.SearchService;
+import com.vaxtrack.model.SearchResult;
+import java.util.List;
 
 import com.vaxtrack.database.DatabaseConnection;
 import javafx.application.Application;
@@ -35,65 +38,58 @@ public class MainApp extends Application {
     @Override
     public void start(Stage primaryStage) {
 
-        VaccineRecordService recordService = new VaccineRecordService();
+        SearchService searchService = new SearchService();
 
         try {
-            // Assumes patient ID 1 and 2 exist from Phase 5 tests
-            // Vaccines 1-5 were seeded in Phase 2
+            // --- Test 1: Search patients by name ---
+            System.out.println("=== SEARCH PATIENTS: 'rahim' ===");
+            searchService.searchPatients("rahim")
+                    .forEach(p -> System.out.println(p.getDisplayInfo()));
 
-            // --- Test 1: Add vaccine records ---
-            System.out.println("=== ADD RECORDS ===");
-            recordService.addRecord(1, 1, 1, LocalDate.of(2024, 1, 10),
-                    "Dr. Rahman", "First dose given");
-            recordService.addRecord(1, 1, 2, LocalDate.of(2024, 2, 10),
-                    "Dr. Rahman", "Second dose given");
-            recordService.addRecord(1, 4, 1, LocalDate.of(2024, 3, 1),
-                    "Dr. Karim", "Annual flu shot");
-            recordService.addRecord(2, 3, 1, LocalDate.of(2024, 4, 5),
-                    "Dr. Hasan", "Hep B first dose");
+            // --- Test 2: Search patients by phone ---
+            System.out.println("\n=== SEARCH PATIENTS BY PHONE: '017' ===");
+            searchService.searchPatients("017")
+                    .forEach(p -> System.out.println(p.getDisplayInfo()));
 
-            // --- Test 2: View patient history ---
-            System.out.println("\n=== HISTORY: Patient ID 1 ===");
-            recordService.getPatientHistory(1)
+            // --- Test 3: Search records by vaccine name ---
+            System.out.println("\n=== SEARCH RECORDS: 'covid' ===");
+            searchService.searchRecords("covid")
                     .forEach(r -> System.out.println(r.getDisplayInfo()));
 
-            // --- Test 3: View all records ---
-            System.out.println("\n=== ALL RECORDS ===");
-            recordService.getAllRecords()
+            // --- Test 4: Unified search ---
+            System.out.println("\n=== UNIFIED SEARCH: 'pfizer' ===");
+            searchService.search("pfizer")
+                    .forEach(r -> System.out.println(r));
+
+            // --- Test 5: Patient vaccine history ---
+            System.out.println("\n=== PATIENT HISTORY: ID 1 ===");
+            searchService.getPatientHistory(1)
                     .forEach(r -> System.out.println(r.getDisplayInfo()));
 
-            // --- Test 4: Duplicate dose prevention ---
-            System.out.println("\n=== DUPLICATE DOSE TEST ===");
+            // --- Test 6: Dashboard stats ---
+            System.out.println("\n=== DASHBOARD STATS ===");
+            System.out.println("Total Patients    : " + searchService.getTotalPatients());
+            System.out.println("Total Vaccinations: " + searchService.getTotalVaccinations());
+            System.out.println("Total Vaccines    : " + searchService.getTotalVaccines());
+
+            // --- Test 7: Short keyword validation ---
+            System.out.println("\n=== SHORT KEYWORD TEST ===");
             try {
-                recordService.addRecord(1, 1, 1, LocalDate.now(), "Dr. X", "");
+                searchService.search("a");
             } catch (IllegalArgumentException e) {
                 System.out.println("Caught: " + e.getMessage());
             }
 
-            // --- Test 5: Exceeded dose limit ---
-            System.out.println("\n=== EXCEEDED DOSE LIMIT TEST ===");
-            try {
-                recordService.addRecord(1, 4, 2, LocalDate.now(), "Dr. X", "");
-                // Influenza only needs 1 dose
-            } catch (IllegalArgumentException e) {
-                System.out.println("Caught: " + e.getMessage());
-            }
-
-            // --- Test 6: Delete a record ---
-            System.out.println("\n=== DELETE RECORD ID 4 ===");
-            recordService.deleteRecord(4);
-            System.out.println("Remaining records: " + recordService.getAllRecords().size());
-
-            // --- Test 7: List available vaccines ---
-            System.out.println("\n=== ALL VACCINES ===");
-            recordService.getAllVaccines()
-                    .forEach(v -> System.out.println(v.getDisplayInfo()));
+            // --- Test 8: Blank search returns empty ---
+            System.out.println("\n=== BLANK SEARCH TEST ===");
+            List<SearchResult> empty = searchService.search("  ");
+            System.out.println("Results for blank: " + empty.size()); // 0
 
         } catch (SQLException e) {
             System.err.println("DB Error: " + e.getMessage());
         }
 
-        primaryStage.setTitle("VaxTrack — Records Test");
+        primaryStage.setTitle("VaxTrack — Search Test");
         primaryStage.setScene(new Scene(new StackPane(new Label("Check console")), 300, 150));
         primaryStage.show();
     }
