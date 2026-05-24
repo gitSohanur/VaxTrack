@@ -41,7 +41,6 @@
 
     <build>
         <plugins>
-            <!-- JavaFX Maven Plugin -->
             <plugin>
                 <groupId>org.openjfx</groupId>
                 <artifactId>javafx-maven-plugin</artifactId>
@@ -52,5 +51,6 @@
             </plugin>
         </plugins>
     </build>
+
 
 </project>
