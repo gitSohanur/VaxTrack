@@ -7,6 +7,13 @@ import javafx.scene.control.Label;
 import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
 
+
+import com.vaxtrack.service.AuthService;
+import com.vaxtrack.utils.SessionManager;
+import com.vaxtrack.model.User;
+import java.sql.SQLException;
+
+
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.time.LocalDate;   // ✅ Import LocalDate
@@ -21,28 +28,35 @@ public class MainApp extends Application {
     @Override
     public void start(Stage primaryStage) {
 
-        // --- OOP test — remove after verification ---
-        Patient p = new Patient(1, "Rahim Uddin", LocalDate.of(1990, 5, 15), "Male", "01711000000", "Dhaka");
-        Vaccine v = new Vaccine(1, "COVID-19 (Pfizer)", "Pfizer", 2, "mRNA vaccine");
-        VaccineRecord r = new VaccineRecord(1, 1, 1, 1, LocalDate.now(), "Dr. Karim", "No side effects");
-        r.setPatientName(p.getFullName());
-        r.setVaccineName(v.getVaccineName());
+        AuthService authService = new AuthService();
 
-        System.out.println(p.getDisplayInfo());
-        System.out.println("Age: " + p.getAge());
-        System.out.println(v.getDisplayInfo());
-        System.out.println(r.getDisplayInfo());
-        // --- end OOP test ---
+        try {
+            // Test 1: Wrong credentials
+            boolean fail = authService.login("admin", "wrongpassword");
+            System.out.println("Wrong password result: " + fail); // false
 
-        // ✅ Define a status message for the UI
-        String status = "[DB] Connection test not yet implemented";
+            // Test 2: Correct credentials
+            boolean success = authService.login("admin", "admin123");
+            System.out.println("Correct login result: " + success); // true
 
-        Label label = new Label(status);
-        StackPane root = new StackPane(label);
-        Scene scene = new Scene(root, 400, 200);
+            // Test 3: Session check
+            if (authService.isLoggedIn()) {
+                User u = SessionManager.getInstance().getCurrentUser();
+                System.out.println("Session user: " + u.getDisplayInfo());
+                System.out.println("Is admin: " + SessionManager.getInstance().isAdmin());
+            }
 
-        primaryStage.setTitle("VaxTrack — DB Test");
-        primaryStage.setScene(scene);
+            // Test 4: Logout
+            authService.logout();
+            System.out.println("Logged in after logout: " + authService.isLoggedIn()); // false
+
+        } catch (SQLException e) {
+            System.err.println("Auth test error: " + e.getMessage());
+        }
+
+        // Minimal window so app doesn't crash
+        primaryStage.setTitle("VaxTrack — Auth Test");
+        primaryStage.setScene(new Scene(new StackPane(new Label("Check console")), 300, 150));
         primaryStage.show();
     }
 
