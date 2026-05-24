@@ -8,44 +8,46 @@ import javafx.scene.layout.*;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.stage.Stage;
+import com.vaxtrack.ui.UIConstants;
 
-/**
- * Main dashboard after login.
- * Shows stats + navigation to all sections.
- */
 public class DashboardScreen {
 
-    private Stage stage;
+    private final Stage stage;
 
-    // Stat labels — updated in Phase 9
-    private Label patientCountLabel;
-    private Label vaccinationCountLabel;
-    private Label vaccineCountLabel;
-    private Label welcomeLabel;
-
-    // Nav buttons — wired in Phase 9
+    private Label  patientCountLabel;
+    private Label  vaccinationCountLabel;
+    private Label  vaccineCountLabel;
+    private Label  welcomeLabel;
     private Button patientsBtn;
     private Button recordsBtn;
     private Button searchBtn;
     private Button logoutBtn;
 
+    private final Scene scene;   // built once, reused
+
+    // ── Constructor: build scene immediately ──────────────
     public DashboardScreen(Stage stage) {
         this.stage = stage;
+        this.scene = createScene();   // ← private builder
     }
 
+    // ── Public getter — never null ────────────────────────
     public Scene getScene() {
+        return scene;
+    }
 
+    // ── Private scene builder ─────────────────────────────
+    private Scene createScene() {
         BorderPane root = new BorderPane();
         root.setStyle("-fx-background-color: " + UIConstants.BG_LIGHT + ";");
-
-        // ── Top Nav Bar ───────────────────────────────────
         root.setTop(buildNavBar());
 
-        // ── Center Content ────────────────────────────────
         ScrollPane scrollPane = new ScrollPane(buildContent());
         scrollPane.setFitToWidth(true);
-        scrollPane.setStyle("-fx-background-color: transparent;" +
-                "-fx-background: transparent;");
+        scrollPane.setStyle(
+                "-fx-background-color: transparent;" +
+                        "-fx-background: transparent;"
+        );
         root.setCenter(scrollPane);
 
         return new Scene(root, 900, 620);
@@ -87,27 +89,24 @@ public class DashboardScreen {
         VBox content = new VBox(24);
         content.setPadding(new Insets(28));
 
-        // Page title
         Label pageTitle = new Label("Dashboard");
         pageTitle.setFont(Font.font("System", FontWeight.BOLD, 22));
         pageTitle.setStyle("-fx-text-fill: " + UIConstants.TEXT_DARK + ";");
 
         Label pageSub = new Label("Overview of the vaccination system");
-        pageSub.setStyle("-fx-text-fill: " + UIConstants.TEXT_GRAY +
-                "; -fx-font-size: 13px;");
+        pageSub.setStyle(
+                "-fx-text-fill: " + UIConstants.TEXT_GRAY + "; -fx-font-size: 13px;"
+        );
 
         // ── Stats Row ─────────────────────────────────────
         HBox statsRow = new HBox(16);
         statsRow.getChildren().addAll(
                 buildStatCard("👥", "Total Patients",
-                        patientCountLabel = new Label("—"),
-                        UIConstants.PRIMARY),
+                        patientCountLabel = new Label("—"), UIConstants.PRIMARY),
                 buildStatCard("💉", "Vaccinations Given",
-                        vaccinationCountLabel = new Label("—"),
-                        UIConstants.SUCCESS),
+                        vaccinationCountLabel = new Label("—"), UIConstants.SUCCESS),
                 buildStatCard("🧪", "Vaccine Types",
-                        vaccineCountLabel = new Label("—"),
-                        "#7C3AED")
+                        vaccineCountLabel = new Label("—"), "#7C3AED")
         );
 
         // ── Quick Actions ─────────────────────────────────
@@ -129,14 +128,12 @@ public class DashboardScreen {
         );
 
         content.getChildren().addAll(
-                pageTitle, pageSub,
-                statsRow,
-                actionsTitle, actionsRow
+                pageTitle, pageSub, statsRow, actionsTitle, actionsRow
         );
         return content;
     }
 
-    // ── Stat Card Builder ─────────────────────────────────
+    // ── Stat Card ─────────────────────────────────────────
     private VBox buildStatCard(String icon, String label,
                                Label valueLabel, String color) {
         VBox card = new VBox(8);
@@ -148,8 +145,9 @@ public class DashboardScreen {
         iconLabel.setFont(Font.font(28));
 
         Label lbl = new Label(label);
-        lbl.setStyle("-fx-text-fill: " + UIConstants.TEXT_GRAY +
-                "; -fx-font-size: 12px;");
+        lbl.setStyle(
+                "-fx-text-fill: " + UIConstants.TEXT_GRAY + "; -fx-font-size: 12px;"
+        );
 
         valueLabel.setFont(Font.font("System", FontWeight.BOLD, 32));
         valueLabel.setStyle("-fx-text-fill: " + color + ";");
@@ -158,7 +156,7 @@ public class DashboardScreen {
         return card;
     }
 
-    // ── Action Card Builder ───────────────────────────────
+    // ── Action Card ───────────────────────────────────────
     private VBox buildActionCard(String icon, String title,
                                  String desc, Button btn) {
         VBox card = new VBox(12);
@@ -175,8 +173,9 @@ public class DashboardScreen {
         titleLabel.setStyle("-fx-text-fill: " + UIConstants.TEXT_DARK + ";");
 
         Label descLabel = new Label(desc);
-        descLabel.setStyle("-fx-text-fill: " + UIConstants.TEXT_GRAY +
-                "; -fx-font-size: 12px;");
+        descLabel.setStyle(
+                "-fx-text-fill: " + UIConstants.TEXT_GRAY + "; -fx-font-size: 12px;"
+        );
         descLabel.setWrapText(true);
 
         Region spacer = new Region();
@@ -192,14 +191,14 @@ public class DashboardScreen {
         return btn;
     }
 
-    // ── Getters for Phase 9 ───────────────────────────────
-    public Label getPatientCountLabel()      { return patientCountLabel; }
-    public Label getVaccinationCountLabel()  { return vaccinationCountLabel; }
-    public Label getVaccineCountLabel()      { return vaccineCountLabel; }
-    public Label getWelcomeLabel()           { return welcomeLabel; }
+    // ── Getters for DashboardController ──────────────────
+    public Label  getPatientCountLabel()     { return patientCountLabel; }
+    public Label  getVaccinationCountLabel() { return vaccinationCountLabel; }
+    public Label  getVaccineCountLabel()     { return vaccineCountLabel; }
+    public Label  getWelcomeLabel()          { return welcomeLabel; }
     public Button getPatientsBtn()           { return patientsBtn; }
     public Button getRecordsBtn()            { return recordsBtn; }
     public Button getSearchBtn()             { return searchBtn; }
     public Button getLogoutBtn()             { return logoutBtn; }
-    public Stage getStage()                  { return stage; }
+    public Stage  getStage()                 { return stage; }
 }

@@ -8,36 +8,36 @@ import javafx.scene.layout.*;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.stage.Stage;
+import com.vaxtrack.ui.UIConstants;
 
-/**
- * Login screen — first screen the user sees.
- * Business logic connected in Phase 9.
- */
 public class LoginScreen {
 
-    private Stage stage;
-    private TextField usernameField;
+    private final Stage stage;
+
+    // ── Fields declared at class level ────────────────────
+    private TextField     usernameField;
     private PasswordField passwordField;
-    private Label messageLabel;
+    private Label         messageLabel;
+    private Button        loginBtn;       // ← class field, not local
+    private Scene         scene;
 
     public LoginScreen(Stage stage) {
         this.stage = stage;
+        buildScene();                     // ← build immediately in constructor
     }
 
-    public Scene getScene() {
+    // ── Build once, reuse ─────────────────────────────────
+    private void buildScene() {
 
-        // ── Root ──────────────────────────────────────────
         BorderPane root = new BorderPane();
         root.setStyle("-fx-background-color: " + UIConstants.BG_LIGHT + ";");
 
-        // ── Center Card ───────────────────────────────────
         VBox card = new VBox(20);
         card.setAlignment(Pos.CENTER);
         card.setPadding(new Insets(40));
         card.setMaxWidth(400);
         card.setStyle(UIConstants.CARD_STYLE + "-fx-padding: 40;");
 
-        // ── Logo / Title ──────────────────────────────────
         Label logo = new Label("💉");
         logo.setFont(Font.font(48));
 
@@ -52,7 +52,6 @@ public class LoginScreen {
         Separator sep = new Separator();
         sep.setPadding(new Insets(4, 0, 4, 0));
 
-        // ── Username Field ────────────────────────────────
         Label userLabel = new Label("Username");
         userLabel.setStyle(UIConstants.LABEL_STYLE);
         userLabel.setMaxWidth(Double.MAX_VALUE);
@@ -62,7 +61,6 @@ public class LoginScreen {
         usernameField.setStyle(UIConstants.INPUT_STYLE);
         usernameField.setMaxWidth(Double.MAX_VALUE);
 
-        // ── Password Field ────────────────────────────────
         Label passLabel = new Label("Password");
         passLabel.setStyle(UIConstants.LABEL_STYLE);
         passLabel.setMaxWidth(Double.MAX_VALUE);
@@ -72,29 +70,21 @@ public class LoginScreen {
         passwordField.setStyle(UIConstants.INPUT_STYLE);
         passwordField.setMaxWidth(Double.MAX_VALUE);
 
-        // ── Message Label (errors) ────────────────────────
         messageLabel = new Label("");
         messageLabel.setStyle("-fx-text-fill: " + UIConstants.DANGER +
                 "; -fx-font-size: 12px;");
         messageLabel.setMaxWidth(Double.MAX_VALUE);
         messageLabel.setWrapText(true);
 
-        // ── Login Button ──────────────────────────────────
-        Button loginBtn = new Button("Login");
+        // ── loginBtn is now a field, initialized here ─────
+        loginBtn = new Button("Login");
         loginBtn.setStyle(UIConstants.PRIMARY_BTN);
         loginBtn.setMaxWidth(Double.MAX_VALUE);
-        loginBtn.setOnAction(e -> handleLogin());
 
-        // Allow Enter key to submit
-        passwordField.setOnAction(e -> handleLogin());
-        usernameField.setOnAction(e -> passwordField.requestFocus());
-
-        // ── Footer ────────────────────────────────────────
         Label footer = new Label("VaxTrack v1.0 — OOP University Project");
         footer.setStyle("-fx-text-fill: " + UIConstants.TEXT_GRAY +
                 "; -fx-font-size: 10px;");
 
-        // ── Assemble Card ─────────────────────────────────
         card.getChildren().addAll(
                 logo, title, subtitle, sep,
                 userLabel, usernameField,
@@ -105,19 +95,18 @@ public class LoginScreen {
         StackPane center = new StackPane(card);
         root.setCenter(center);
 
-        return new Scene(root, 480, 560);
+        this.scene = new Scene(root, 480, 560);
     }
 
-    // ── Called from Phase 9 ───────────────────────────────
-    public TextField getUsernameField()   { return usernameField; }
-    public PasswordField getPasswordField() { return passwordField; }
-    public Label getMessageLabel()        { return messageLabel; }
-    public Stage getStage()               { return stage; }
-
-    private void handleLogin() {
-        // Placeholder — wired in Phase 9
-        messageLabel.setStyle("-fx-text-fill: " + UIConstants.TEXT_GRAY +
-                "; -fx-font-size: 12px;");
-        messageLabel.setText("Connecting to backend in Phase 9...");
+    // ── Always returns the same scene ─────────────────────
+    public Scene getScene() {
+        return scene;
     }
+
+    // ── Getters ───────────────────────────────────────────
+    public TextField      getUsernameField()  { return usernameField; }
+    public PasswordField  getPasswordField()  { return passwordField; }
+    public Label          getMessageLabel()   { return messageLabel; }
+    public Button         getLoginButton()    { return loginBtn; }   // ← never null
+    public Stage          getStage()          { return stage; }
 }

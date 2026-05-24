@@ -13,25 +13,24 @@ import javafx.scene.layout.*;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.stage.Stage;
+import com.vaxtrack.ui.UIConstants;
 
-/**
- * Patient management screen.
- * Table + form for full CRUD operations.
- */
+
 public class PatientScreen {
 
-    private Stage stage;
+    private final Stage stage;
+    private final Scene scene;
 
     // Table
-    private TableView<Patient> table;
-    private ObservableList<Patient> tableData;
+    private TableView<Patient>         table;
+    private ObservableList<Patient>    tableData;
 
     // Form fields
-    private TextField fullNameField;
-    private DatePicker dobPicker;
-    private ComboBox<String> genderCombo;
-    private TextField phoneField;
-    private TextField addressField;
+    private TextField         fullNameField;
+    private DatePicker        dobPicker;
+    private ComboBox<String>  genderCombo;
+    private TextField         phoneField;
+    private TextField         addressField;
 
     // Buttons
     private Button addBtn;
@@ -39,18 +38,27 @@ public class PatientScreen {
     private Button deleteBtn;
     private Button clearBtn;
     private Button backBtn;
-    private TextField searchField;
     private Button searchBtn;
 
-    // Status label
+    // Search
+    private TextField searchField;
+
+    // Status
     private Label statusLabel;
 
+    // ── Constructor ───────────────────────────────────────
     public PatientScreen(Stage stage) {
-        this.stage = stage;
+        this.stage     = stage;
         this.tableData = FXCollections.observableArrayList();
+        this.scene     = createScene();
     }
 
     public Scene getScene() {
+        return scene;
+    }
+
+    // ── Private scene builder ─────────────────────────────
+    private Scene createScene() {
         BorderPane root = new BorderPane();
         root.setStyle("-fx-background-color: " + UIConstants.BG_LIGHT + ";");
         root.setTop(buildTopBar());
@@ -87,7 +95,6 @@ public class PatientScreen {
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
 
-        // Search bar in top
         searchField = new TextField();
         searchField.setPromptText("Search by name or phone...");
         searchField.setPrefWidth(220);
@@ -144,7 +151,12 @@ public class PatientScreen {
         TableColumn<Patient, String> phoneCol = new TableColumn<>("Phone");
         phoneCol.setCellValueFactory(new PropertyValueFactory<>("phone"));
 
-        table.getColumns().addAll(idCol, nameCol, dobCol, ageCol, genderCol, phoneCol);
+        TableColumn<Patient, String> addressCol = new TableColumn<>("Address");
+        addressCol.setCellValueFactory(new PropertyValueFactory<>("address"));
+
+        table.getColumns().addAll(
+                idCol, nameCol, dobCol, ageCol, genderCol, phoneCol, addressCol
+        );
 
         // Row click → populate form
         table.getSelectionModel().selectedItemProperty().addListener(
@@ -165,13 +177,30 @@ public class PatientScreen {
         header.setFont(Font.font("System", FontWeight.BOLD, 14));
         header.setStyle("-fx-text-fill: " + UIConstants.TEXT_DARK + ";");
 
-        fullNameField = buildInput("Full Name", "Enter full name");
-        dobPicker     = buildDatePicker("Date of Birth");
-        genderCombo   = buildGenderCombo();
-        phoneField    = buildInput("Phone", "e.g. 01711000000");
-        addressField  = buildInput("Address", "Enter address");
+        fullNameField = new TextField();
+        fullNameField.setPromptText("Enter full name");
+        fullNameField.setStyle(UIConstants.INPUT_STYLE);
 
-        // ── Action Buttons ────────────────────────────────
+        dobPicker = new DatePicker();
+        dobPicker.setPromptText("Select date of birth");
+        dobPicker.setStyle(UIConstants.INPUT_STYLE);
+        dobPicker.setMaxWidth(Double.MAX_VALUE);
+
+        genderCombo = new ComboBox<>();
+        genderCombo.getItems().addAll("Male", "Female", "Other");
+        genderCombo.setPromptText("Select gender");
+        genderCombo.setStyle(UIConstants.INPUT_STYLE);
+        genderCombo.setMaxWidth(Double.MAX_VALUE);
+
+        phoneField = new TextField();
+        phoneField.setPromptText("e.g. 01711000000");
+        phoneField.setStyle(UIConstants.INPUT_STYLE);
+
+        addressField = new TextField();
+        addressField.setPromptText("Enter address");
+        addressField.setStyle(UIConstants.INPUT_STYLE);
+
+        // Buttons
         addBtn    = new Button("➕ Add Patient");
         updateBtn = new Button("✏ Update");
         deleteBtn = new Button("🗑 Delete");
@@ -181,12 +210,9 @@ public class PatientScreen {
         updateBtn.setStyle(UIConstants.PRIMARY_BTN);
         deleteBtn.setStyle(UIConstants.DANGER_BTN);
         clearBtn.setStyle(
-                "-fx-background-color: #E2E8F0;" +
-                        "-fx-text-fill: #475569;" +
-                        "-fx-font-size: 13px;" +
-                        "-fx-background-radius: 6;" +
-                        "-fx-cursor: hand;" +
-                        "-fx-padding: 8 16 8 16;"
+                "-fx-background-color: #E2E8F0; -fx-text-fill: #475569;" +
+                        "-fx-font-size: 13px; -fx-background-radius: 6;" +
+                        "-fx-cursor: hand; -fx-padding: 8 16 8 16;"
         );
 
         HBox btnRow = new HBox(8, addBtn, updateBtn, deleteBtn, clearBtn);
@@ -194,14 +220,13 @@ public class PatientScreen {
 
         pane.getChildren().addAll(
                 header,
-                labeledField("Full Name", fullNameField),
+                labeledNode("Full Name",     fullNameField),
                 labeledNode("Date of Birth", dobPicker),
-                labeledNode("Gender", genderCombo),
-                labeledField("Phone", phoneField),
-                labeledField("Address", addressField),
+                labeledNode("Gender",        genderCombo),
+                labeledNode("Phone",         phoneField),
+                labeledNode("Address",       addressField),
                 btnRow
         );
-
         return pane;
     }
 
@@ -209,52 +234,24 @@ public class PatientScreen {
     private HBox buildStatusBar() {
         HBox bar = new HBox();
         bar.setPadding(new Insets(8, 16, 8, 16));
-        bar.setStyle("-fx-background-color: " + UIConstants.WHITE + ";" +
-                "-fx-border-color: " + UIConstants.BORDER + " transparent transparent;");
-
+        bar.setStyle(
+                "-fx-background-color: white;" +
+                        "-fx-border-color: " + UIConstants.BORDER + " transparent transparent;"
+        );
         statusLabel = new Label("Ready");
-        statusLabel.setStyle("-fx-text-fill: " + UIConstants.TEXT_GRAY +
-                "; -fx-font-size: 12px;");
+        statusLabel.setStyle(
+                "-fx-text-fill: " + UIConstants.TEXT_GRAY + "; -fx-font-size: 12px;"
+        );
         bar.getChildren().add(statusLabel);
         return bar;
     }
 
     // ── Helpers ───────────────────────────────────────────
-    private TextField buildInput(String label, String prompt) {
-        TextField field = new TextField();
-        field.setPromptText(prompt);
-        field.setStyle(UIConstants.INPUT_STYLE);
-        field.setMaxWidth(Double.MAX_VALUE);
-        return field;
-    }
-
-    private DatePicker buildDatePicker(String label) {
-        DatePicker dp = new DatePicker();
-        dp.setPromptText(label);
-        dp.setStyle(UIConstants.INPUT_STYLE);
-        dp.setMaxWidth(Double.MAX_VALUE);
-        return dp;
-    }
-
-    private ComboBox<String> buildGenderCombo() {
-        ComboBox<String> combo = new ComboBox<>();
-        combo.getItems().addAll("Male", "Female", "Other");
-        combo.setPromptText("Select gender");
-        combo.setStyle(UIConstants.INPUT_STYLE);
-        combo.setMaxWidth(Double.MAX_VALUE);
-        return combo;
-    }
-
-    private VBox labeledField(String label, TextField field) {
-        return labeledNode(label, field);
-    }
-
     private VBox labeledNode(String labelText, Control node) {
         Label lbl = new Label(labelText);
         lbl.setStyle(UIConstants.LABEL_STYLE);
-        VBox box = new VBox(4, lbl, node);
         node.setMaxWidth(Double.MAX_VALUE);
-        return box;
+        return new VBox(4, lbl, node);
     }
 
     private void populateForm(Patient p) {
@@ -266,6 +263,7 @@ public class PatientScreen {
         addressField.setText(p.getAddress());
     }
 
+    // ── Public helpers called by controller ───────────────
     public void clearForm() {
         fullNameField.clear();
         dobPicker.setValue(null);
@@ -278,25 +276,25 @@ public class PatientScreen {
     public void setStatus(String msg, boolean isError) {
         statusLabel.setText(msg);
         statusLabel.setStyle(
-                "-fx-text-fill: " + (isError ? UIConstants.DANGER : UIConstants.SUCCESS) +
-                        "; -fx-font-size: 12px;"
+                "-fx-font-size: 12px; -fx-text-fill: " +
+                        (isError ? UIConstants.DANGER : UIConstants.SUCCESS) + ";"
         );
     }
 
-    // ── Getters for Phase 9 ───────────────────────────────
-    public TableView<Patient> getTable()        { return table; }
-    public ObservableList<Patient> getTableData() { return tableData; }
-    public TextField getFullNameField()         { return fullNameField; }
-    public DatePicker getDobPicker()            { return dobPicker; }
-    public ComboBox<String> getGenderCombo()    { return genderCombo; }
-    public TextField getPhoneField()            { return phoneField; }
-    public TextField getAddressField()          { return addressField; }
-    public Button getAddBtn()                   { return addBtn; }
-    public Button getUpdateBtn()                { return updateBtn; }
-    public Button getDeleteBtn()                { return deleteBtn; }
-    public Button getClearBtn()                 { return clearBtn; }
-    public Button getBackBtn()                  { return backBtn; }
-    public TextField getSearchField()           { return searchField; }
-    public Button getSearchBtn()                { return searchBtn; }
-    public Stage getStage()                     { return stage; }
+    // ── Getters for PatientController ─────────────────────
+    public TableView<Patient>        getTable()        { return table; }
+    public ObservableList<Patient>   getTableData()    { return tableData; }
+    public TextField                 getFullNameField(){ return fullNameField; }
+    public DatePicker                getDobPicker()    { return dobPicker; }
+    public ComboBox<String>          getGenderCombo()  { return genderCombo; }
+    public TextField                 getPhoneField()   { return phoneField; }
+    public TextField                 getAddressField() { return addressField; }
+    public Button                    getAddBtn()       { return addBtn; }
+    public Button                    getUpdateBtn()    { return updateBtn; }
+    public Button                    getDeleteBtn()    { return deleteBtn; }
+    public Button                    getClearBtn()     { return clearBtn; }
+    public Button                    getBackBtn()      { return backBtn; }
+    public TextField                 getSearchField()  { return searchField; }
+    public Button                    getSearchBtn()    { return searchBtn; }
+    public Stage                     getStage()        { return stage; }
 }

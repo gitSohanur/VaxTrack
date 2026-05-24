@@ -1,6 +1,7 @@
 package com.vaxtrack.ui;
 
 import com.vaxtrack.model.SearchResult;
+import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
@@ -13,28 +14,34 @@ import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.stage.Stage;
 
-/**
- * Unified search screen — searches patients and records.
- */
+import com.vaxtrack.ui.UIConstants;
+
 public class SearchScreen {
 
-    private Stage stage;
+    private final Stage stage;
+    private final Scene scene;
 
-    private TextField searchField;
-    private Button    searchBtn;
-    private Button    backBtn;
-    private Label     resultCountLabel;
-    private Label     statusLabel;
+    private TextField                    searchField;
+    private Button                       searchBtn;
+    private Button                       backBtn;
+    private Label                        resultCountLabel;
+    private Label                        statusLabel;
+    private TableView<SearchResult>      table;
+    private ObservableList<SearchResult> tableData;
 
-    private TableView<SearchResult>        table;
-    private ObservableList<SearchResult>   tableData;
-
+    // ── Constructor ───────────────────────────────────────
     public SearchScreen(Stage stage) {
-        this.stage = stage;
+        this.stage     = stage;
         this.tableData = FXCollections.observableArrayList();
+        this.scene     = createScene();
     }
 
     public Scene getScene() {
+        return scene;
+    }
+
+    // ── Private scene builder ─────────────────────────────
+    private Scene createScene() {
         BorderPane root = new BorderPane();
         root.setStyle("-fx-background-color: " + UIConstants.BG_LIGHT + ";");
         root.setTop(buildTopBar());
@@ -79,7 +86,6 @@ public class SearchScreen {
                         "-fx-padding: 7 16 7 16;"
         );
 
-        // Enter key triggers search
         searchField.setOnAction(e -> searchBtn.fire());
 
         bar.getChildren().addAll(backBtn, title, spacer, searchField, searchBtn);
@@ -91,14 +97,10 @@ public class SearchScreen {
         VBox content = new VBox(16);
         content.setPadding(new Insets(24));
 
-        // Result count row
-        HBox countRow = new HBox();
-        countRow.setAlignment(Pos.CENTER_LEFT);
-
         resultCountLabel = new Label("Enter a keyword above to search");
-        resultCountLabel.setStyle("-fx-text-fill: " + UIConstants.TEXT_GRAY +
-                "; -fx-font-size: 13px;");
-        countRow.getChildren().add(resultCountLabel);
+        resultCountLabel.setStyle(
+                "-fx-text-fill: " + UIConstants.TEXT_GRAY + "; -fx-font-size: 13px;"
+        );
 
         // Results table
         table = new TableView<>(tableData);
@@ -106,13 +108,11 @@ public class SearchScreen {
         table.setPlaceholder(new Label("No results found."));
         VBox.setVgrow(table, Priority.ALWAYS);
 
+        // Type column with color coding
         TableColumn<SearchResult, String> typeCol = new TableColumn<>("Type");
         typeCol.setCellValueFactory(c ->
-                new javafx.beans.property.SimpleStringProperty(
-                        c.getValue().getType().toString()));
-        typeCol.setPrefWidth(110);
-
-        // Color-code type column
+                new SimpleStringProperty(c.getValue().getType().toString()));
+        typeCol.setPrefWidth(120);
         typeCol.setCellFactory(col -> new TableCell<>() {
             @Override
             protected void updateItem(String item, boolean empty) {
@@ -123,8 +123,10 @@ public class SearchScreen {
                 } else {
                     setText(item);
                     setStyle(item.equals("PATIENT")
-                            ? "-fx-text-fill: " + UIConstants.PRIMARY + "; -fx-font-weight: bold;"
-                            : "-fx-text-fill: " + UIConstants.SUCCESS + "; -fx-font-weight: bold;"
+                            ? "-fx-text-fill: " + UIConstants.PRIMARY +
+                              "; -fx-font-weight: bold;"
+                            : "-fx-text-fill: " + UIConstants.SUCCESS +
+                              "; -fx-font-weight: bold;"
                     );
                 }
             }
@@ -138,7 +140,7 @@ public class SearchScreen {
 
         TableColumn<SearchResult, String> tagCol = new TableColumn<>("Tag");
         tagCol.setCellValueFactory(new PropertyValueFactory<>("tag"));
-        tagCol.setPrefWidth(120);
+        tagCol.setPrefWidth(130);
 
         TableColumn<SearchResult, String> dateCol = new TableColumn<>("Date");
         dateCol.setCellValueFactory(new PropertyValueFactory<>("date"));
@@ -146,7 +148,7 @@ public class SearchScreen {
 
         table.getColumns().addAll(typeCol, titleCol, subtitleCol, tagCol, dateCol);
 
-        content.getChildren().addAll(countRow, table);
+        content.getChildren().addAll(resultCountLabel, table);
         return content;
     }
 
@@ -154,30 +156,33 @@ public class SearchScreen {
     private HBox buildStatusBar() {
         HBox bar = new HBox();
         bar.setPadding(new Insets(8, 16, 8, 16));
-        bar.setStyle("-fx-background-color: white;" +
-                "-fx-border-color: " + UIConstants.BORDER +
-                " transparent transparent;");
+        bar.setStyle(
+                "-fx-background-color: white;" +
+                        "-fx-border-color: " + UIConstants.BORDER + " transparent transparent;"
+        );
         statusLabel = new Label("Ready");
-        statusLabel.setStyle("-fx-text-fill: " + UIConstants.TEXT_GRAY +
-                "; -fx-font-size: 12px;");
+        statusLabel.setStyle(
+                "-fx-text-fill: " + UIConstants.TEXT_GRAY + "; -fx-font-size: 12px;"
+        );
         bar.getChildren().add(statusLabel);
         return bar;
     }
 
+    // ── Public helpers called by controller ───────────────
     public void setStatus(String msg, boolean isError) {
         statusLabel.setText(msg);
         statusLabel.setStyle(
-                "-fx-text-fill: " + (isError ? UIConstants.DANGER : UIConstants.SUCCESS) +
-                        "; -fx-font-size: 12px;"
+                "-fx-font-size: 12px; -fx-text-fill: " +
+                        (isError ? UIConstants.DANGER : UIConstants.SUCCESS) + ";"
         );
     }
 
-    // ── Getters for Phase 9 ───────────────────────────────
-    public TextField getSearchField()                  { return searchField; }
-    public Button getSearchBtn()                       { return searchBtn; }
-    public Button getBackBtn()                         { return backBtn; }
-    public Label getResultCountLabel()                 { return resultCountLabel; }
-    public TableView<SearchResult> getTable()          { return table; }
-    public ObservableList<SearchResult> getTableData() { return tableData; }
-    public Stage getStage()                            { return stage; }
+    // ── Getters for SearchController ──────────────────────
+    public TextField                    getSearchField()      { return searchField; }
+    public Button                       getSearchBtn()        { return searchBtn; }
+    public Button                       getBackBtn()          { return backBtn; }
+    public Label                        getResultCountLabel() { return resultCountLabel; }
+    public TableView<SearchResult>      getTable()            { return table; }
+    public ObservableList<SearchResult> getTableData()        { return tableData; }
+    public Stage                        getStage()            { return stage; }
 }

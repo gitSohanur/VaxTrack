@@ -16,25 +16,24 @@ import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.stage.Stage;
 
-/**
- * Vaccine record management screen.
- * Add vaccine records and view vaccination history.
- */
+import com.vaxtrack.ui.UIConstants;
+
 public class VaccineRecordScreen {
 
-    private Stage stage;
+    private final Stage stage;
+    private final Scene scene;
 
     // Table
-    private TableView<VaccineRecord> table;
-    private ObservableList<VaccineRecord> tableData;
+    private TableView<VaccineRecord>       table;
+    private ObservableList<VaccineRecord>  tableData;
 
     // Form fields
-    private ComboBox<Patient> patientCombo;
-    private ComboBox<Vaccine> vaccineCombo;
-    private Spinner<Integer>  doseSpinner;
-    private DatePicker        dateGivenPicker;
-    private TextField         administeredByField;
-    private TextField         notesField;
+    private ComboBox<Patient>  patientCombo;
+    private ComboBox<Vaccine>  vaccineCombo;
+    private Spinner<Integer>   doseSpinner;
+    private DatePicker         dateGivenPicker;
+    private TextField          administeredByField;
+    private TextField          notesField;
 
     // Buttons
     private Button addBtn;
@@ -46,12 +45,19 @@ public class VaccineRecordScreen {
     // Status
     private Label statusLabel;
 
+    // ── Constructor ───────────────────────────────────────
     public VaccineRecordScreen(Stage stage) {
-        this.stage = stage;
+        this.stage     = stage;
         this.tableData = FXCollections.observableArrayList();
+        this.scene     = createScene();
     }
 
     public Scene getScene() {
+        return scene;
+    }
+
+    // ── Private scene builder ─────────────────────────────
+    private Scene createScene() {
         BorderPane root = new BorderPane();
         root.setStyle("-fx-background-color: " + UIConstants.BG_LIGHT + ";");
         root.setTop(buildTopBar());
@@ -63,6 +69,7 @@ public class VaccineRecordScreen {
 
         root.setCenter(split);
         root.setBottom(buildStatusBar());
+
         return new Scene(root, 1000, 640);
     }
 
@@ -134,7 +141,12 @@ public class VaccineRecordScreen {
         TableColumn<VaccineRecord, String> byCol = new TableColumn<>("Administered By");
         byCol.setCellValueFactory(new PropertyValueFactory<>("administeredBy"));
 
-        table.getColumns().addAll(idCol, patientCol, vaccineCol, doseCol, dateCol, byCol);
+        TableColumn<VaccineRecord, String> notesCol = new TableColumn<>("Notes");
+        notesCol.setCellValueFactory(new PropertyValueFactory<>("notes"));
+
+        table.getColumns().addAll(
+                idCol, patientCol, vaccineCol, doseCol, dateCol, byCol, notesCol
+        );
 
         pane.getChildren().addAll(header, table);
         return pane;
@@ -155,8 +167,6 @@ public class VaccineRecordScreen {
         patientCombo.setPromptText("Select patient");
         patientCombo.setMaxWidth(Double.MAX_VALUE);
         patientCombo.setStyle(UIConstants.INPUT_STYLE);
-
-        // Custom display for patient
         patientCombo.setCellFactory(lv -> new ListCell<>() {
             @Override
             protected void updateItem(Patient p, boolean empty) {
@@ -179,7 +189,6 @@ public class VaccineRecordScreen {
         vaccineCombo.setPromptText("Select vaccine");
         vaccineCombo.setMaxWidth(Double.MAX_VALUE);
         vaccineCombo.setStyle(UIConstants.INPUT_STYLE);
-
         vaccineCombo.setCellFactory(lv -> new ListCell<>() {
             @Override
             protected void updateItem(Vaccine v, boolean empty) {
@@ -201,12 +210,15 @@ public class VaccineRecordScreen {
         doseSpinner = new Spinner<>(1, 10, 1);
         doseSpinner.setStyle(UIConstants.INPUT_STYLE);
         doseSpinner.setMaxWidth(Double.MAX_VALUE);
+        doseSpinner.setEditable(true);
 
+        // Date Picker
         dateGivenPicker = new DatePicker();
         dateGivenPicker.setPromptText("Select date");
         dateGivenPicker.setStyle(UIConstants.INPUT_STYLE);
         dateGivenPicker.setMaxWidth(Double.MAX_VALUE);
 
+        // Text fields
         administeredByField = new TextField();
         administeredByField.setPromptText("e.g. Dr. Rahman");
         administeredByField.setStyle(UIConstants.INPUT_STYLE);
@@ -249,24 +261,27 @@ public class VaccineRecordScreen {
     private HBox buildStatusBar() {
         HBox bar = new HBox();
         bar.setPadding(new Insets(8, 16, 8, 16));
-        bar.setStyle("-fx-background-color: white;" +
-                "-fx-border-color: " + UIConstants.BORDER +
-                " transparent transparent;");
+        bar.setStyle(
+                "-fx-background-color: white;" +
+                        "-fx-border-color: " + UIConstants.BORDER + " transparent transparent;"
+        );
         statusLabel = new Label("Ready");
-        statusLabel.setStyle("-fx-text-fill: " + UIConstants.TEXT_GRAY +
-                "; -fx-font-size: 12px;");
+        statusLabel.setStyle(
+                "-fx-text-fill: " + UIConstants.TEXT_GRAY + "; -fx-font-size: 12px;"
+        );
         bar.getChildren().add(statusLabel);
         return bar;
     }
 
+    // ── Helpers ───────────────────────────────────────────
     private VBox labeledNode(String labelText, Control node) {
         Label lbl = new Label(labelText);
         lbl.setStyle(UIConstants.LABEL_STYLE);
-        VBox box = new VBox(4, lbl, node);
         node.setMaxWidth(Double.MAX_VALUE);
-        return box;
+        return new VBox(4, lbl, node);
     }
 
+    // ── Public helpers called by controller ───────────────
     public void clearForm() {
         patientCombo.setValue(null);
         vaccineCombo.setValue(null);
@@ -280,24 +295,24 @@ public class VaccineRecordScreen {
     public void setStatus(String msg, boolean isError) {
         statusLabel.setText(msg);
         statusLabel.setStyle(
-                "-fx-text-fill: " + (isError ? UIConstants.DANGER : UIConstants.SUCCESS) +
-                        "; -fx-font-size: 12px;"
+                "-fx-font-size: 12px; -fx-text-fill: " +
+                        (isError ? UIConstants.DANGER : UIConstants.SUCCESS) + ";"
         );
     }
 
-    // ── Getters for Phase 9 ───────────────────────────────
-    public TableView<VaccineRecord> getTable()           { return table; }
-    public ObservableList<VaccineRecord> getTableData()  { return tableData; }
-    public ComboBox<Patient> getPatientCombo()           { return patientCombo; }
-    public ComboBox<Vaccine> getVaccineCombo()           { return vaccineCombo; }
-    public Spinner<Integer> getDoseSpinner()             { return doseSpinner; }
-    public DatePicker getDateGivenPicker()               { return dateGivenPicker; }
-    public TextField getAdministeredByField()            { return administeredByField; }
-    public TextField getNotesField()                     { return notesField; }
-    public Button getAddBtn()                            { return addBtn; }
-    public Button getDeleteBtn()                         { return deleteBtn; }
-    public Button getClearBtn()                          { return clearBtn; }
-    public Button getBackBtn()                           { return backBtn; }
-    public Button getRefreshBtn()                        { return refreshBtn; }
-    public Stage getStage()                              { return stage; }
+    // ── Getters for VaccineRecordController ───────────────
+    public TableView<VaccineRecord>       getTable()              { return table; }
+    public ObservableList<VaccineRecord>  getTableData()          { return tableData; }
+    public ComboBox<Patient>              getPatientCombo()       { return patientCombo; }
+    public ComboBox<Vaccine>              getVaccineCombo()       { return vaccineCombo; }
+    public Spinner<Integer>              getDoseSpinner()         { return doseSpinner; }
+    public DatePicker                    getDateGivenPicker()     { return dateGivenPicker; }
+    public TextField                     getAdministeredByField() { return administeredByField; }
+    public TextField                     getNotesField()          { return notesField; }
+    public Button                        getAddBtn()              { return addBtn; }
+    public Button                        getDeleteBtn()           { return deleteBtn; }
+    public Button                        getClearBtn()            { return clearBtn; }
+    public Button                        getBackBtn()             { return backBtn; }
+    public Button                        getRefreshBtn()          { return refreshBtn; }
+    public Stage                         getStage()               { return stage; }
 }
